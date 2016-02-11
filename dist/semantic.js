@@ -2901,7 +2901,12 @@ $.extend( $.easing, {
                     isShift ? shifts[c].shiftNumber :
                     formatter.time(cellDate, settings, true);
 
-                  cell = $('<td/>').addClass(className.cell).appendTo(row);
+                  if(isShift){
+                    cell = $('<td/>').addClass(className.cell).prependTo(row);
+                  }
+                  else{
+                    cell = $('<td/>').addClass(className.cell).appendTo(row);
+                  }
                   cell.text(cellText);
                   cell.data(metadata.date, cellDate);
                   var disabled = (isDay && cellDate.getMonth() !== month) || !module.helper.isDateInRange(cellDate, mode);
