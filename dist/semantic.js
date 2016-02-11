@@ -3263,7 +3263,7 @@ $.extend( $.easing, {
               if(settings.type === 'shift'){ // update the selecteShiftObject
                 $(shifts).each(function(shift_i, shift){
                   if(String(new Date(shift.startTime)) === String(date)){
-                    selectedShift = shift;
+                    selectedShift = shift.id;
                   }
                 });
               }
