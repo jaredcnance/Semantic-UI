@@ -192,8 +192,6 @@
               var isTimeOnly = settings.type === 'time';
               var isShift = mode === 'shift';
 
-
-              // TODO: columns for shifts should be dependent on the number of shifts defined for the day
               var columns = isDay ? 7 : isHour ? 4 : isShift ? shifts.length : 3;
               var columnsString = columns === 7 ? 'seven' : columns === 4 ? 'four' : 'three';
               var rows = isDay || isHour ? 6 : isShift ? 1 : 4;
@@ -210,8 +208,6 @@
               var prevNextDay = isHour || isMinute ? day : 1;
               var prevDate = new Date(year - yearChange, month - monthChange, prevNextDay - dayChange, hour);
               var nextDate = new Date(year + yearChange, month + monthChange, prevNextDay + dayChange, hour);
-              // TODO: define shiftChange?
-
 
               var prevLast = isYear ? new Date(Math.ceil(year / 10) * 10 - 9, 0, 0) :
                 isMonth ? new Date(year, 0, 0) : isDay ? new Date(year, month, 0) : new Date(year, month, day, -1);
@@ -267,15 +263,6 @@
               for (r = 0; r < rows; r++) {
                 row = $('<tr/>').appendTo(tbody);
                 for (c = 0; c < columns; c++, i++) {
-                  // TODO: define shifts for the selected day
-                  /*
-                    shifts : [{
-                      startTime,
-                      endTime,
-                      shiftNumber
-                  }, ... ]
-                  */
-
                   var cellDate = isYear ? new Date(i, month, 1, hour, minute) :
                     isMonth ? new Date(year, i, 1, hour, minute) :
                     isDay ? new Date(year, month, i, hour, minute) :
