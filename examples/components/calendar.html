@@ -110,6 +110,9 @@
         // });
         // $('#example15').calendar();
         $('#example16').calendar({
+          onChange: function(date) {
+            console.log(date);
+          },
           type: 'shift',
           shifts: [{
             "startTime": "2016-02-09T13:00:00.000Z",

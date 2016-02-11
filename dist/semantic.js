@@ -2652,6 +2652,7 @@ $.extend( $.easing, {
           error = settings.error,
 
           shifts = [],
+          selectedShift = null,
 
           eventNamespace = '.' + namespace,
           moduleNamespace = 'module-' + namespace,
@@ -3180,9 +3181,17 @@ $.extend( $.easing, {
               date = module.helper.dateInRange(date);
 
               var text = formatter.datetime(date, settings);
-              if (fireChange && settings.onChange.call(element, date, text) === false) {
-                return false;
+              if(settings.type === 'shift'){
+                if (fireChange && settings.onChange.call(element, selectedShift, text) === false) {
+                  return false;
+                }
               }
+              else{
+                if (fireChange && settings.onChange.call(element, date, text) === false) {
+                  return false;
+                }
+              }
+
 
               var endDate = module.get.endDate();
               if (!!endDate && !!date && date > endDate) {
@@ -3251,6 +3260,13 @@ $.extend( $.easing, {
               (settings.type === 'year' && mode === 'year') ||
               (settings.type === 'shift' && mode === 'shift');
             if (complete) {
+              if(settings.type === 'shift'){ // update the selecteShiftObject
+                $(shifts).each(function(shift_i, shift){
+                  if(String(new Date(shift.startTime)) === String(date)){
+                    selectedShift = shift;
+                  }
+                });
+              }
               var canceled = module.set.date(date) === false;
               if (!canceled && settings.closable) {
                 module.popup('hide');
