@@ -192,9 +192,9 @@
               var isTimeOnly = settings.type === 'time';
               var isShift = mode === 'shift';
 
-              var columns = isDay ? 7 : isHour ? 4 : isShift ? shifts.length : 3;
+              var columns = isDay ? 7 : isHour ? 4 : isShift ? 1 : 3;
               var columnsString = columns === 7 ? 'seven' : columns === 4 ? 'four' : 'three';
-              var rows = isDay || isHour ? 6 : isShift ? 1 : 4;
+              var rows = isDay || isHour ? 6 : isShift ? shifts.length : 4;
 
               var firstMonthDayColumn = (new Date(year, month, 1).getDay() - settings.firstDayOfWeek % 7 + 7) % 7;
               if (!settings.constantHeight && isDay) {
@@ -247,16 +247,19 @@
                   }
                 }
               }
-              if(isShift){
+
+              if (isShift) {
                 var thead = $('<thead/>').appendTo(table);
                 row = $('<tr/>').appendTo(thead);
-                cell = $('<th/>').attr('colspan', '' + columns).appendTo(row);
-                var headerText = $('<span/>').addClass(className.link).appendTo(cell);
-                headerText.text(formatter.header(display, mode, settings));
+                cell = $('<th/>').appendTo(row);
+
+                row = $('<tr/>').appendTo(thead);
+                cell = $('<th/>').appendTo(row);
+                cell.text(formatter.header(display, mode, settings));
 
                 var newMode = isMonth ? (settings.disableYear ? 'day' : 'year') :
                   isDay ? (settings.disableMonth ? 'year' : 'month') : 'day';
-                headerText.data(metadata.mode, newMode);
+                cell.data(metadata.mode, newMode);
               }
               var tbody = $('<tbody/>').appendTo(table);
               i = isYear ? Math.ceil(year / 10) * 10 - 9 : isDay ? 1 - firstMonthDayColumn : 0;
@@ -267,30 +270,61 @@
                     isMonth ? new Date(year, i, 1, hour, minute) :
                     isDay ? new Date(year, month, i, hour, minute) :
                     isHour ? new Date(year, month, day, i) :
-                    isShift ? new Date(shifts[c].startTime) :
+                    isShift ? new Date(shifts[r].startTime) :
                     new Date(year, month, day, hour, i * 5);
 
                   var cellText = isYear ? i :
                     isMonth ? settings.text.monthsShort[i] :
                     isDay ? cellDate.getDate() :
-                    isShift ? shifts[c].shiftNumber :
+                    isShift ? shifts[r].shiftNumber :
                     formatter.time(cellDate, settings, true);
 
-                  if(isShift){
-                    cell = $('<td/>').addClass(className.cell).prependTo(row);
+                  var disableOverride = false;
+                  if (!isShift && settings.type === 'shift') {
+                    var dayShifts = [];
+                    for (var s = 0; s < settings.shifts.length; s++) {
+                      var shift = settings.shifts[s];
+                      var productionDate = new Date(shift.productionDate);
+                      var check;
+                      if (isDay) {
+                        check = function () {
+                          return (productionDate.toDateString() === cellDate.toDateString());
+                        };
+                      } else {
+                        if (isMonth) {
+                          check = function () {
+                            return (productionDate.getYear() === cellDate.getYear() && productionDate.getMonth() === cellDate.getMonth());
+                          };
+                        } else {
+                          if (isYear) {
+                            check = function () {
+                              return (productionDate.getYear() === cellDate.getYear());
+                            };
+                          }
+                        }
+                      }
+
+                      if (check()) {
+                        dayShifts.push(shift);
+                      }
+                    }
+
+                    if (dayShifts.length === 0) {
+                      disableOverride = true;
+                    }
                   }
-                  else{
-                    cell = $('<td/>').addClass(className.cell).appendTo(row);
-                  }
+
+                  cell = $('<td/>').addClass(className.cell).appendTo(row);
                   cell.text(cellText);
                   cell.data(metadata.date, cellDate);
-                  var disabled = (isDay && cellDate.getMonth() !== month) || !module.helper.isDateInRange(cellDate, mode);
+                  var disabled = (disableOverride || isDay && cellDate.getMonth() !== month) || !module.helper.isDateInRange(cellDate, mode);
                   var active = module.helper.dateEqual(cellDate, date, mode);
                   cell.toggleClass(className.disabledCell, disabled);
                   cell.toggleClass(className.activeCell, active);
                   if (!isHour && !isMinute && !isShift) {
                     cell.toggleClass(className.todayCell, module.helper.dateEqual(cellDate, today, mode));
                   }
+
                   if (module.helper.dateEqual(cellDate, focusDate, mode)) {
                     //ensure that the focus date is exactly equal to the cell date
                     //so that, if selected, the correct value is set
@@ -310,11 +344,12 @@
 
               $container.empty();
               table.appendTo($container);
-            }
+            },
+
           },
 
           update: {
-            focus: function(updateRange, container) {
+            focus: function (updateRange, container) {
               container = container || $container;
               var mode = module.get.mode();
               var date = module.get.date();
