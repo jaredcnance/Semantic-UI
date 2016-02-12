@@ -2873,10 +2873,16 @@ $.extend( $.easing, {
                   isDay ? (settings.disableMonth ? 'year' : 'month') : 'day';
                 cell.data(metadata.mode, newMode);
               }
+
               var tbody = $('<tbody/>').appendTo(table);
               i = isYear ? Math.ceil(year / 10) * 10 - 9 : isDay ? 1 - firstMonthDayColumn : 0;
               for (r = 0; r < rows; r++) {
-                row = $('<tr/>').appendTo(tbody);
+                if (isShift) {
+                  row = $('<tr/>').prependTo(tbody);
+                } else {
+                  row = $('<tr/>').appendTo(tbody);
+                }
+
                 for (c = 0; c < columns; c++, i++) {
                   var cellDate = isYear ? new Date(i, month, 1, hour, minute) :
                     isMonth ? new Date(year, i, 1, hour, minute) :
